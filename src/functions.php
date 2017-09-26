@@ -48,7 +48,7 @@ function cata(...$args)
 
 function ana(...$args)
 {
-    $ana = curry(function ($f, $x) {
+    $ana = curry(function (callable $f, $x) {
         return map(ana($f), $f($x));
     });
 
