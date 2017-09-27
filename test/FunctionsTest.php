@@ -9,40 +9,52 @@ use function Phantasy\Recursion\{
     hylo
 };
 
+function Cons($head, $tail)
+{
+    return new class ($head, $tail) {
+        public $head = null;
+        public $tail = [];
+
+        public function __construct($head, $tail)
+        {
+            $this->head = $head;
+            $this->tail = $tail;
+        }
+
+        public function map(callable $f)
+        {
+            return new static($this->head, $f($this->tail));
+        }
+    };
+}
+
+function Nil()
+{
+    return new class () {
+        public function map(callable $f)
+        {
+            return new static();
+        }
+    };
+}
+
+function head($xs)
+{
+    return $xs[0];
+}
+
+function tail($xs)
+{
+    return array_slice($xs, 1);
+}
+
 class FunctionsTest extends TestCase
 {
     public function testCata()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
-        };
-
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $list = $Cons(1, $Cons(2, $Cons(5, $Nil())));
-        $sum = function ($x) use ($Nil) {
-            return $x == $Nil() ? 0 : $x->head + $x->tail;
+        $list = Cons(1, Cons(2, Cons(5, Nil())));
+        $sum = function ($x) {
+            return $x == Nil() ? 0 : $x->head + $x->tail;
         };
 
         $this->assertEquals(cata($sum, $list), 8);
@@ -50,36 +62,9 @@ class FunctionsTest extends TestCase
 
     public function testCataCurried()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
-        };
-
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $list = $Cons(1, $Cons(2, $Cons(5, $Nil())));
-        $sum = function ($x) use ($Nil) {
-            return $x == $Nil() ? 0 : $x->head + $x->tail;
+        $list = Cons(1, Cons(2, Cons(5, Nil())));
+        $sum = function ($x) {
+            return $x == Nil() ? 0 : $x->head + $x->tail;
         };
 
         $cata = cata();
@@ -97,87 +82,17 @@ class FunctionsTest extends TestCase
 
     public function testAna()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
+        $arrToList = function ($xs) {
+            return count($xs) === 0 ? Nil() : Cons(head($xs), tail($xs));
         };
 
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $head = function ($xs) {
-            return $xs[0];
-        };
-
-        $tail = function ($xs) {
-            return array_slice($xs, 1);
-        };
-
-        $arrToList = function ($xs) use ($Cons, $Nil, $head, $tail) {
-            return count($xs) === 0 ? $Nil() : $Cons($head($xs), $tail($xs));
-        };
-
-        $this->assertEquals(ana($arrToList, [1, 2, 3, 4, 5]), $Cons(1, $Cons(2, $Cons(3, $Cons(4, $Cons(5, $Nil()))))));
+        $this->assertEquals(ana($arrToList, [1, 2, 3, 4, 5]), Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil()))))));
     }
 
     public function testAnaCurried()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
-        };
-
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $head = function ($xs) {
-            return $xs[0];
-        };
-
-        $tail = function ($xs) {
-            return array_slice($xs, 1);
-        };
-
-        $arrToList = function ($xs) use ($Cons, $Nil, $head, $tail) {
-            return count($xs) === 0 ? $Nil() : $Cons($head($xs), $tail($xs));
+        $arrToList = function ($xs) {
+            return count($xs) === 0 ? Nil() : Cons(head($xs), tail($xs));
         };
 
         $ana = ana();
@@ -186,55 +101,20 @@ class FunctionsTest extends TestCase
 
         $this->assertEquals(
             $ana($arrToList, [1, 2, 3, 4, 5]),
-            $Cons(1, $Cons(2, $Cons(3, $Cons(4, $Cons(5, $Nil())))))
+            Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil())))))
         );
-        $this->assertEquals($anaF([1, 2, 3, 4, 5]), $Cons(1, $Cons(2, $Cons(3, $Cons(4, $Cons(5, $Nil()))))));
-        $this->assertEquals($anaF_([1, 2, 3, 4, 5]), $Cons(1, $Cons(2, $Cons(3, $Cons(4, $Cons(5, $Nil()))))));
+        $this->assertEquals($anaF([1, 2, 3, 4, 5]), Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil()))))));
+        $this->assertEquals($anaF_([1, 2, 3, 4, 5]), Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil()))))));
     }
 
     public function testHylo()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
+        $sum = function ($x) {
+            return $x == Nil() ? 0 : $x->head + $x->tail;
         };
 
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $sum = function ($x) use ($Nil) {
-            return $x == $Nil() ? 0 : $x->head + $x->tail;
-        };
-
-        $head = function ($xs) {
-            return $xs[0];
-        };
-
-        $tail = function ($xs) {
-            return array_slice($xs, 1);
-        };
-
-        $arrToList = function ($xs) use ($Cons, $Nil, $head, $tail) {
-            return count($xs) === 0 ? $Nil() : $Cons($head($xs), $tail($xs));
+        $arrToList = function ($xs) {
+            return count($xs) === 0 ? Nil() : Cons(head($xs), tail($xs));
         };
 
         $this->assertEquals(hylo($sum, $arrToList, [1, 2, 3, 4, 5]), 15);
@@ -242,47 +122,12 @@ class FunctionsTest extends TestCase
 
     public function testHyloCurried()
     {
-        $Cons = function ($head, $tail) {
-            return new class ($head, $tail) {
-                public $head = null;
-                public $tail = [];
-
-                public function __construct($head, $tail)
-                {
-                    $this->head = $head;
-                    $this->tail = $tail;
-                }
-
-                public function map(callable $f)
-                {
-                    return new static($this->head, $f($this->tail));
-                }
-            };
+        $sum = function ($x) {
+            return $x == Nil() ? 0 : $x->head + $x->tail;
         };
 
-        $Nil = function () {
-            return new class () {
-                public function map(callable $f)
-                {
-                    return new static();
-                }
-            };
-        };
-
-        $sum = function ($x) use ($Nil) {
-            return $x == $Nil() ? 0 : $x->head + $x->tail;
-        };
-
-        $head = function ($xs) {
-            return $xs[0];
-        };
-
-        $tail = function ($xs) {
-            return array_slice($xs, 1);
-        };
-
-        $arrToList = function ($xs) use ($Cons, $Nil, $head, $tail) {
-            return count($xs) === 0 ? $Nil() : $Cons($head($xs), $tail($xs));
+        $arrToList = function ($xs) {
+            return count($xs) === 0 ? Nil() : Cons(head($xs), tail($xs));
         };
 
         $hylo = hylo();
