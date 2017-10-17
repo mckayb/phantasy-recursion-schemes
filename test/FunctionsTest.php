@@ -107,6 +107,23 @@ class FunctionsTest extends TestCase
         $this->assertEquals($anaF_([1, 2, 3, 4, 5]), Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil()))))));
     }
 
+    public function testAnaCountUp()
+    {
+        // a -> f a
+        $range = function ($start, $end) {
+            return ana(function ($x) use ($start, $end) {
+                return $x >= $start && $x <= $end
+                    ? Cons($x, $x + 1)
+                    : Nil();
+            }, $start);
+        };
+
+        $this->assertEquals(
+            $range(1, 5),
+            Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil())))))
+        );
+    }
+
     public function testHylo()
     {
         $sum = function ($x) {
@@ -137,5 +154,25 @@ class FunctionsTest extends TestCase
         $hyloBoth_ = $hyloSum_($arrToList);
         $this->assertEquals($hyloBoth([1, 2, 3, 4, 5]), 15);
         $this->assertEquals($hyloBoth_([1, 2, 3, 4, 5]), 15);
+    }
+
+    public function testHyloWithRangeAndSum()
+    {
+        $sum = function ($x) {
+            return $x == Nil() ? 0 : $x->head + $x->tail;
+        };
+
+        $range = function ($start, $end) {
+            return function ($x) use ($start, $end) {
+                return $x >= $start && $x <= $end
+                    ? Cons($x, $x + 1)
+                    : Nil();
+            };
+        };
+
+        $this->assertEquals(
+            hylo($sum, $range(1, 5), 1),
+            15
+        );
     }
 }
