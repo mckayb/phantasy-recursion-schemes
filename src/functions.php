@@ -5,9 +5,10 @@ namespace Phantasy\Recursion;
 function curry(callable $callable)
 {
     $ref = new \ReflectionFunction($callable);
+    $numParams = $ref->getNumberOfRequiredParameters();
 
-    $recurseFunc = function (...$args) use ($callable, $ref, &$recurseFunc) {
-        if (count($args) >= $ref->getNumberOfRequiredParameters()) {
+    $recurseFunc = function (...$args) use ($callable, $numParams, &$recurseFunc) {
+        if (count($args) >= $numParams) {
             return call_user_func_array($callable, $args);
         } else {
             return function (...$args2) use ($args, &$recurseFunc) {
@@ -23,7 +24,7 @@ function map(...$args)
 {
     $map = curry(
         function (callable $f, $x) {
-            if (method_exists($x, 'map')) {
+            if (is_callable([$x, 'map'])) {
                 return call_user_func([$x, 'map'], $f);
             }
         }
