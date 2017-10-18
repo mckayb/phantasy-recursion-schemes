@@ -110,16 +110,16 @@ class FunctionsTest extends TestCase
     public function testAnaCountUp()
     {
         // a -> f a
-        $range = function ($start, $end) {
-            return ana(function ($x) use ($start, $end) {
-                return $x >= $start && $x <= $end
+        $upTo = function ($end) {
+            return function ($x) use ($end) {
+                return $x <= $end
                     ? Cons($x, $x + 1)
                     : Nil();
-            }, $start);
+            };
         };
 
         $this->assertEquals(
-            $range(1, 5),
+            ana($upTo(5), 1),
             Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil())))))
         );
     }
@@ -162,16 +162,16 @@ class FunctionsTest extends TestCase
             return $x == Nil() ? 0 : $x->head + $x->tail;
         };
 
-        $range = function ($start, $end) {
-            return function ($x) use ($start, $end) {
-                return $x >= $start && $x <= $end
+        $upTo = function ($end) {
+            return function ($x) use ($end) {
+                return $x <= $end
                     ? Cons($x, $x + 1)
                     : Nil();
             };
         };
 
         $this->assertEquals(
-            hylo($sum, $range(1, 5), 1),
+            hylo($sum, $upTo(5), 1),
             15
         );
     }

@@ -8,40 +8,40 @@ In the examples below, we'll use a LinkedList, which is defined below. (With som
 use Phantasy\Types\sum;
 
 $LL = sum('LinkedList', [
-	'Cons' => ['head', 'tail'],
-	'Nil' => []
+    'Cons' => ['head', 'tail'],
+    'Nil' => []
 ]);
 
 $LL->map = function (callable $f) {
-	return $this->cata([
-		'Cons' => function ($head, $tail) use ($f) {
-			return $this->Cons($head, $f($tail));
- 		},
-		'Nil' => function () {
-			return $this->Nil();
-		}
-	]);
+    return $this->cata([
+        'Cons' => function ($head, $tail) use ($f) {
+            return $this->Cons($head, $f($tail));
+        },
+        'Nil' => function () {
+            return $this->Nil();
+        }
+    ]);
 };
 $LL->isNil = function () {
-	return $this->cata([
-		'Cons' => function ($head, $tail) {
-			return false;
-		},
-		'Nil' => function () {
-			return true;
-		}
-	]);
+    return $this->cata([
+        'Cons' => function ($head, $tail) {
+            return false;
+        },
+        'Nil' => function () {
+            return true;
+        }
+    ]);
 };
 
 // And include some quick helper functions
 // so I don't have to litter everything with
 // use ($LL)
 function Cons ($head, $tail) use ($LL) {
-  return $LL->Cons($head, $tail);
+    return $LL->Cons($head, $tail);
 }
 
 function Nil () use ($LL) {
-  return $LL->Nil();
+    return $LL->Nil();
 }
 ```
 Note, in the above definition, that the map method for Cons, only maps over the tail, not the head, and that the map method for Nil simply returns itself.
@@ -91,12 +91,16 @@ use function Phantasy\Recursion\ana;
 ```
 #### Examples
 ```php
-$range = function ($start, $end) {
-  return ana(function ($x) use ($start, $end) {
-    return $x >= $start && $x <= $end
-      ? Cons($x, $x + 1)
-      : Nil();
-  }, $start);
+$upTo = function ($end) {
+    return function ($x) use ($end) {
+        return $x <= $end
+            ? Cons($x, $x + 1)
+            : Nil();
+    };
+};
+
+$range = function ($start, $end) use ($upTo) {
+  return ana($upTo($end), $start);
 };
 
 echo $range(1, 5);
@@ -117,14 +121,14 @@ $sum = function ($x) {
     return $x == Nil() ? 0 : $x->head + $x->tail;
 };
 
-$range = function ($start, $end) {
-  return ana(function ($x) use ($start, $end) {
-    return $x >= $start && $x <= $end
-      ? Cons($x, $x + 1)
-      : Nil();
-  }, $start);
+$upTo = function ($end) {
+    return function ($x) use ($end) {
+        return $x <= $end
+            ? Cons($x, $x + 1)
+            : Nil();
+    };
 };
 
-hylo($sum, $range(1, 5), 1);
+hylo($sum, $upTo(5), 1);
 // 15
 ```
