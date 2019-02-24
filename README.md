@@ -1,4 +1,4 @@
-# Phantasy Recursion Schemes [![Build Status](https://travis-ci.org/mckayb/phantasy-recursion-schemes.svg?branch=master)](https://travis-ci.org/mckayb/phantasy-recursion-schemes) [![Coverage Status](https://coveralls.io/repos/github/mckayb/phantasy-recursion-schemes/badge.svg?branch=master)](https://coveralls.io/github/mckayb/phantasy-recursion-schemes)
+# Phantasy Recursion Schemes [![Coverage Status](https://coveralls.io/repos/github/mckayb/phantasy-recursion-schemes/badge.svg?branch=master)](https://coveralls.io/github/mckayb/phantasy-recursion-schemes)
 Common recursion schemes implemented in PHP.
 
 ## Getting Started
